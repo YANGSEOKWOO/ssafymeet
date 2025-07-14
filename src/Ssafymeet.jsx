@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Users, Plus, Link, ArrowLeft, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, Users, Plus, Link, ArrowLeft, Check, ChevronLeft, ChevronRight, X, MapPin, User } from 'lucide-react';
 
 // 목업 데이터
 const mockUsers = [
@@ -9,12 +9,66 @@ const mockUsers = [
 ];
 
 const mockEvents = [
-  { id: '1', userId: '1', title: '알고리즘 스터디', start: '2025-07-15T09:00', end: '2025-07-15T11:00', color: '#3B82F6' },
-  { id: '2', userId: '1', title: '점심 약속', start: '2025-07-15T12:00', end: '2025-07-15T13:00', color: '#3B82F6' },
-  { id: '3', userId: '2', title: '프로젝트 회의', start: '2025-07-15T14:00', end: '2025-07-15T16:00', color: '#10B981' },
-  { id: '4', userId: '2', title: '개인 운동', start: '2025-07-16T19:00', end: '2025-07-16T21:00', color: '#10B981' },
-  { id: '5', userId: '3', title: '면접 준비', start: '2025-07-15T10:00', end: '2025-07-15T12:00', color: '#F59E0B' },
-  { id: '6', userId: '3', title: '영화 관람', start: '2025-07-16T15:00', end: '2025-07-16T17:30', color: '#F59E0B' },
+  { 
+    id: '1', 
+    userId: '1', 
+    title: '알고리즘 스터디', 
+    start: '2025-07-15T09:00', 
+    end: '2025-07-15T11:00', 
+    color: '#3B82F6',
+    location: '싸피 강의실 A',
+    description: '백준 문제 풀이 및 코드 리뷰'
+  },
+  { 
+    id: '2', 
+    userId: '1', 
+    title: '점심 약속', 
+    start: '2025-07-15T12:00', 
+    end: '2025-07-15T13:00', 
+    color: '#3B82F6',
+    location: '학식',
+    description: '팀원들과 함께 점심 식사'
+  },
+  { 
+    id: '3', 
+    userId: '2', 
+    title: '프로젝트 회의', 
+    start: '2025-07-15T14:00', 
+    end: '2025-07-15T16:00', 
+    color: '#10B981',
+    location: '회의실 B',
+    description: 'SSafy Meet 기획 회의'
+  },
+  { 
+    id: '4', 
+    userId: '2', 
+    title: '개인 운동', 
+    start: '2025-07-16T19:00', 
+    end: '2025-07-16T21:00', 
+    color: '#10B981',
+    location: '헬스장',
+    description: '개인 운동 시간'
+  },
+  { 
+    id: '5', 
+    userId: '3', 
+    title: '면접 준비', 
+    start: '2025-07-15T10:00', 
+    end: '2025-07-15T12:00', 
+    color: '#F59E0B',
+    location: '스터디룸',
+    description: '삼성 SW 역량테스트 준비'
+  },
+  { 
+    id: '6', 
+    userId: '3', 
+    title: '영화 관람', 
+    start: '2025-07-16T15:00', 
+    end: '2025-07-16T17:30', 
+    color: '#F59E0B',
+    location: 'CGV 강남',
+    description: '친구들과 영화 관람'
+  },
 ];
 
 const SSafyMeet = () => {
@@ -24,29 +78,69 @@ const SSafyMeet = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState(mockEvents);
   const [suggestedTimes, setSuggestedTimes] = useState([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // 구글 로그인 시뮬레이션 (실제로는 Google Auth API 사용)
+  // 실제 Google OAuth 초기화
+  useEffect(() => {
+    const initializeGoogleAuth = () => {
+      // Google API 스크립트 로드
+      if (!window.gapi) {
+        const script = document.createElement('script');
+        script.src = 'https://apis.google.com/js/api.js';
+        script.onload = () => {
+          window.gapi.load('auth2', () => {
+            window.gapi.auth2.init({
+              client_id: 'YOUR_GOOGLE_CLIENT_ID' // 실제 클라이언트 ID로 교체 필요
+            });
+          });
+        };
+        document.head.appendChild(script);
+      }
+    };
+
+    initializeGoogleAuth();
+  }, []);
+
+  // Google 로그인 (실제 구현)
   const handleGoogleLogin = async () => {
     try {
-      // 실제 구현에서는 아래와 같은 코드 사용
+      setIsGoogleLoading(true);
+      
+      // 실제 Google OAuth 구현
       /*
-      const response = await gapi.load('auth2', () => {
-        const authInstance = gapi.auth2.getAuthInstance();
-        return authInstance.signIn();
-      });
+      const authInstance = window.gapi.auth2.getAuthInstance();
+      const googleUser = await authInstance.signIn();
+      const profile = googleUser.getBasicProfile();
+      
+      const userData = {
+        id: profile.getId(),
+        name: profile.getName(),
+        email: profile.getEmail(),
+        picture: profile.getImageUrl()
+      };
       */
       
-      // 시뮬레이션
+      // 시뮬레이션 (개발 환경용)
       setTimeout(() => {
-        setCurrentUser(mockUsers[0]);
+        const userData = {
+          ...mockUsers[0],
+          picture: 'https://lh3.googleusercontent.com/a/default-user'
+        };
+        setCurrentUser(userData);
         setCurrentView('main');
-      }, 1000);
+        setIsGoogleLoading(false);
+      }, 2000);
+      
     } catch (error) {
       console.error('Google login failed:', error);
+      setIsGoogleLoading(false);
+      alert('로그인에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -72,8 +166,34 @@ const SSafyMeet = () => {
 
   // 특정 날짜의 이벤트 가져오기
   const getEventsForDate = (date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return events.filter(event => event.start.split('T')[0] === dateStr);
+    // 로컬 시간대를 고려한 날짜 문자열 생성
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    
+    return events.filter(event => {
+      // 이벤트 시작 날짜 추출 (시간대 고려)
+      const eventDate = new Date(event.start);
+      const eventYear = eventDate.getFullYear();
+      const eventMonth = String(eventDate.getMonth() + 1).padStart(2, '0');
+      const eventDay = String(eventDate.getDate()).padStart(2, '0');
+      const eventDateStr = `${eventYear}-${eventMonth}-${eventDay}`;
+      
+      return eventDateStr === dateStr;
+    });
+  };
+
+  // 시간 포맷팅
+  const formatTime = (timeString) => {
+    const date = new Date(timeString);
+    return date.toTimeString().slice(0, 5);
+  };
+
+  // 이벤트 클릭 핸들러
+  const handleEventClick = (event) => {
+    setSelectedEvent(event);
+    setShowEventModal(true);
   };
 
   // 방 생성
@@ -100,7 +220,6 @@ const SSafyMeet = () => {
     const slots = [];
     const today = new Date();
     
-    // 가능한 시간대 계산 (간단한 알고리즘)
     const timeOptions = [
       { time: '09:00', label: '오전 9시' },
       { time: '14:00', label: '오후 2시' },
@@ -133,14 +252,22 @@ const SSafyMeet = () => {
   const confirmAppointment = () => {
     if (!selectedTimeSlot) return;
 
+    // 로컬 시간대를 고려한 날짜 생성
+    const eventDate = selectedTimeSlot.dateObj;
+    const year = eventDate.getFullYear();
+    const month = String(eventDate.getMonth() + 1).padStart(2, '0');
+    const day = String(eventDate.getDate()).padStart(2, '0');
+    
     const newEvent = {
       id: `meeting_${Date.now()}`,
       userId: 'all',
       title: `${selectedRoom.name} 회의`,
-      start: `${selectedTimeSlot.dateObj.getFullYear()}-${String(selectedTimeSlot.dateObj.getMonth() + 1).padStart(2, '0')}-${String(selectedTimeSlot.dateObj.getDate()).padStart(2, '0')}T${selectedTimeSlot.time}`,
-      end: `${selectedTimeSlot.dateObj.getFullYear()}-${String(selectedTimeSlot.dateObj.getMonth() + 1).padStart(2, '0')}-${String(selectedTimeSlot.dateObj.getDate()).padStart(2, '0')}T${selectedTimeSlot.endTime}`,
+      start: `${year}-${month}-${day}T${selectedTimeSlot.time}`,
+      end: `${year}-${month}-${day}T${selectedTimeSlot.endTime}`,
       color: '#EF4444',
       type: 'meeting',
+      location: '온라인 회의',
+      description: `${selectedRoom.name} 팀 회의입니다.`
     };
     
     setEvents([...events, newEvent]);
@@ -163,23 +290,112 @@ const SSafyMeet = () => {
         
         <button
           onClick={handleGoogleLogin}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+          disabled={isGoogleLoading}
+          className={`w-full font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+            isGoogleLoading 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          Google로 로그인
+          {isGoogleLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              로그인 중...
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Google로 로그인
+            </>
+          )}
         </button>
         
         <div className="mt-4 text-xs text-gray-500 text-center">
-          * 실제 구현에서는 Google OAuth 2.0 API 사용
+          * Google OAuth 2.0을 사용한 안전한 로그인
         </div>
       </div>
     </div>
   );
+
+  // 이벤트 상세 모달
+  const EventModal = ({ event, onClose }) => {
+    if (!event) return null;
+
+    const user = mockUsers.find(u => u.id === event.userId);
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-xl font-bold text-gray-800">{event.title}</h2>
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-blue-500" />
+              <div>
+                <div className="font-medium text-gray-800">
+                  {formatTime(event.start)} - {formatTime(event.end)}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {new Date(event.start).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'short'
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {event.location && (
+              <div className="flex items-center gap-3">
+                <MapPin className="w-5 h-5 text-green-500" />
+                <div className="text-gray-800">{event.location}</div>
+              </div>
+            )}
+
+            {user && (
+              <div className="flex items-center gap-3">
+                <User className="w-5 h-5 text-purple-500" />
+                <div>
+                  <div className="font-medium text-gray-800">{user.name}</div>
+                  <div className="text-sm text-gray-600">{user.email}</div>
+                </div>
+              </div>
+            )}
+
+            {event.description && (
+              <div className="pt-2 border-t border-gray-200">
+                <div className="text-sm text-gray-600 mb-1">설명</div>
+                <div className="text-gray-800">{event.description}</div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // 방 생성 모달
   const CreateRoomModal = ({ onClose, onSubmit }) => {
@@ -349,7 +565,7 @@ const SSafyMeet = () => {
   );
 
   // 캘린더 컴포넌트
-  const CalendarView = ({ events, viewMode = 'month', showAllUsers = false }) => {
+  const CalendarView = ({ events, showAllUsers = false }) => {
     const days = generateCalendarDays(currentDate);
     const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
     
@@ -412,7 +628,7 @@ const SSafyMeet = () => {
             return (
               <div
                 key={index}
-                className={`min-h-24 p-1 border border-gray-100 ${
+                className={`min-h-32 p-1 border border-gray-100 ${
                   isCurrentMonth ? 'bg-white' : 'bg-gray-50'
                 } ${isToday ? 'bg-blue-50 border-blue-200' : ''}`}
               >
@@ -423,19 +639,23 @@ const SSafyMeet = () => {
                 </div>
                 
                 <div className="space-y-1">
-                  {filteredEvents.slice(0, 2).map((event) => (
+                  {filteredEvents.slice(0, 3).map((event) => (
                     <div
                       key={event.id}
-                      className="text-xs p-1 rounded text-white truncate"
+                      className="text-xs p-1 rounded text-white truncate cursor-pointer hover:opacity-80 transition-opacity"
                       style={{ backgroundColor: event.color }}
-                      title={`${event.title} (${new Date(event.start).toTimeString().slice(0, 5)})`}
+                      title={`${event.title} (${formatTime(event.start)} - ${formatTime(event.end)})`}
+                      onClick={() => handleEventClick(event)}
                     >
-                      {event.title}
+                      <div className="font-medium">{event.title}</div>
+                      <div className="text-xs opacity-90">
+                        {formatTime(event.start)}
+                      </div>
                     </div>
                   ))}
-                  {filteredEvents.length > 2 && (
-                    <div className="text-xs text-gray-500">
-                      +{filteredEvents.length - 2}개 더
+                  {filteredEvents.length > 3 && (
+                    <div className="text-xs text-gray-500 p-1">
+                      +{filteredEvents.length - 3}개 더
                     </div>
                   )}
                 </div>
@@ -456,7 +676,9 @@ const SSafyMeet = () => {
             <h1 className="text-2xl font-bold text-gray-800">SSafy Meet</h1>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-semibold">김</span>
+                <span className="text-white text-sm font-semibold">
+                  {currentUser?.name?.charAt(0)}
+                </span>
               </div>
               <span className="text-gray-700">{currentUser?.name}</span>
             </div>
@@ -526,6 +748,16 @@ const SSafyMeet = () => {
           onSubmit={handleCreateRoom}
         />
       )}
+
+      {showEventModal && (
+        <EventModal
+          event={selectedEvent}
+          onClose={() => {
+            setShowEventModal(false);
+            setSelectedEvent(null);
+          }}
+        />
+      )}
     </div>
   );
 
@@ -580,6 +812,16 @@ const SSafyMeet = () => {
           onClose={() => {
             setShowTimeSlots(false);
             setSelectedTimeSlot(null);
+          }}
+        />
+      )}
+
+      {showEventModal && (
+        <EventModal
+          event={selectedEvent}
+          onClose={() => {
+            setShowEventModal(false);
+            setSelectedEvent(null);
           }}
         />
       )}
